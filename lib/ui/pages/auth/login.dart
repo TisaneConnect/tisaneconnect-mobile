@@ -47,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(
                       height: 40,
                     ),
+                    
                     TextFieldPrimary(
                       keyboardType: TextInputType.emailAddress,
                       label: "Email",
@@ -82,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: InkWell(
                         onTap: () {
                           Snackbar.error("Fitur belum tersedia");
-                          // nav.goPush(const VerifyEmailPage());
+                          
                         },
                         child: Text(
                           "Lupa password",
@@ -171,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     WidgetSpan(
                       child: GestureDetector(
                         onTap: () {
-                          
+                          Snackbar.error("Fitur belum tersedia");
                         },
                         child: Text(
                           "Sign Up",
