@@ -37,6 +37,7 @@ dependencies:
   intl: ^0.20.1
   select_field: ^2.0.0
   cupertino_icons: ^1.0.6
+  http: 1.2.2
 
 dev_dependencies:
   flutter_test:

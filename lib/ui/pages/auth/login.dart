@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io' show SocketException;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:tisaneconnect/app/color.dart';
 import 'package:tisaneconnect/app/constant.dart';
 import 'package:tisaneconnect/app/font_style.dart';
@@ -10,6 +15,7 @@ import 'package:tisaneconnect/ui/components/button/primary_button.dart';
 import 'package:tisaneconnect/ui/components/text_field/text_field_primary.dart';
 import 'package:tisaneconnect/ui/pages/admin/home/home.dart';
 import 'package:tisaneconnect/ui/pages/auth/register.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,7 +24,68 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   ValueNotifier<bool> isObs = ValueNotifier<bool>(false);
+  bool _isLoading = false;
+
+  Future<void> _login() async {
+    final String username = _usernameController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      Snackbar.error("Please enter username and password");
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.0.105:5000/login'), // Change this
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+        }),
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final String token = responseData['token'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+
+        nav.goRemove(const HomeScreen());
+      } else {
+        final Map<String, dynamic> errorData = jsonDecode(response.body);
+        Snackbar.error(errorData['message'] ?? 'Login failed');
+      }
+    } on SocketException catch (e) {
+      print('Socket Error: ${e.message}');
+      setState(() {
+        _isLoading = false;
+      });
+      Snackbar.error('Cannot connect to server. Check network.');
+    } catch (e) {
+      print('Unexpected Error: $e');
+      setState(() {
+        _isLoading = false;
+      });
+      Snackbar.error('Unexpected error occurred.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -40,11 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: screenHeight() * 0.1,
                     ),
-                    
-                    SvgPicture.asset(
-                      ImageAsset.logo,
-                      width: screenWidth() * 0.5
-                    ),
+                    SvgPicture.asset(ImageAsset.logo,
+                        width: screenWidth() * 0.5),
                     const SizedBox(
                       height: 20,
                     ),
@@ -56,9 +120,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     TextFieldPrimary(
-                      keyboardType: TextInputType.emailAddress,
-                      label: "Email",
-                      hintText: "hello@example.com",
+                      controller: _usernameController,
+                      keyboardType: TextInputType.text,
+                      label: "Username",
+                      hintText: "Enter your username",
                     ),
                     const SizedBox(
                       height: 5,
@@ -67,6 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       valueListenable: isObs,
                       builder: (context, val, _) {
                         return TextFieldPrimary(
+                          controller: _passwordController,
                           hintText: "**********",
                           isObs: !isObs.value,
                           suffixIcon: IconButton(
@@ -90,7 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: InkWell(
                         onTap: () {
                           Snackbar.error("Fitur belum tersedia");
-                          
                         },
                         child: Text(
                           "Lupa password",
@@ -100,41 +165,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    // const SizedBox(
-                    //   height: 10,
-                    // ),
-                    // ValueListenableBuilder(
-                    //   valueListenable: isKeepSigned,
-                    //   builder: (c, val, _) {
-                    //     return CheckboxListTile(
-                    //       value: isKeepSigned.value,
-                    //       onChanged: (e) {
-                    //         isKeepSigned.value = !isKeepSigned.value;
-                    //       },
-                    //       dense: true,
-                    //       checkColor: ColorAssets.white,
-                    //       activeColor: ColorAssets.primary,
-                    //       contentPadding: EdgeInsets.zero,
-                    //       controlAffinity: ListTileControlAffinity.leading,
-                    //       title: Text(
-                    //         "Biarkan saya tetap masuk",
-                    //         style: StyleAsset.normal().copyWith(
-                    //           color: ColorAssets.white,
-                    //           fontSize: screenWidth() * 0.04,
-                    //         ),
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
                     const SizedBox(
                       height: 20,
                     ),
                     PrimaryButton(
-                      label: "Sign In",
+                      label: _isLoading ? "Logging in..." : "Sign In",
                       radius: 100,
-                      onTap: () {
-                        nav.goRemove(const HomeScreen());
-                      },
+                      onTap: _isLoading ? null : _login,
                     ),
                     const SizedBox(
                       height: 10,
@@ -162,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       primary: ColorAssets.neutrals100,
-                      onTap: ()  {
+                      onTap: () {
                         nav.goRemove(const HomeScreen());
                       },
                     ),
@@ -202,5 +239,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
