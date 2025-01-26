@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:io' show SocketException;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tisaneconnect/app/color.dart';
 import 'package:tisaneconnect/app/constant.dart';
 import 'package:tisaneconnect/app/image.dart';
-import 'package:tisaneconnect/app/navigation.dart';
 import 'package:tisaneconnect/app/snackbar.dart';
+import 'package:tisaneconnect/domain/auth/auth_controller.dart';
 import 'package:tisaneconnect/ui/components/button/primary_button.dart';
 import 'package:tisaneconnect/ui/components/text_field/text_field_primary.dart';
-import 'package:tisaneconnect/ui/pages/admin/home/home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,64 +18,26 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthController _loginController = AuthController();
 
   ValueNotifier<bool> isObs = ValueNotifier<bool>(false);
   bool _isLoading = false;
 
-  Future<void> _login() async {
-    final String username = _usernameController.text.trim();
-    final String password = _passwordController.text.trim();
-
-    if (username.isEmpty || password.isEmpty) {
-      Snackbar.error("Please enter username and password");
-      return;
-    }
-
+Future<void> _login() async {
     setState(() {
       _isLoading = true;
     });
 
-    try {
-      final response = await http.post(
-        Uri.parse('http://192.168.0.105:5000/login'), // Change this
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'username': username,
-          'password': password,
-        }),
-      );
+    final bool success = await _loginController.login(
+        _usernameController.text.trim(), _passwordController.text.trim());
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        final String token = responseData['token'];
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
-
-        nav.goRemove(const HomeScreen());
-      } else {
-        final Map<String, dynamic> errorData = jsonDecode(response.body);
-        Snackbar.error(errorData['message'] ?? 'Login failed');
-      }
-    } on SocketException catch (e) {
-      print('Socket Error: ${e.message}');
-      setState(() {
-        _isLoading = false;
-      });
-      Snackbar.error('Cannot connect to server. Check network.');
-    } catch (e) {
-      print('Unexpected Error: $e');
-      setState(() {
-        _isLoading = false;
-      });
-      Snackbar.error('Unexpected error occurred.');
+    if (!success) {
+        Snackbar.error('Login failed. Please check your credentials.');
     }
+    setState(() {
+      _isLoading = false;
+    });
+    
   }
 
   @override
