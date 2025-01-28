@@ -5,8 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tisaneconnect/app/navigation.dart';
 import 'package:tisaneconnect/app/snackbar.dart';
 import 'package:tisaneconnect/ui/pages/admin/home/home.dart';
+import 'package:tisaneconnect/ui/pages/superadmin/homesuperadmin.dart';
 
 class AuthController {
+  final String baseUrl = 'http://103.139.193.137:5000';
   Future<bool> login(String username, String password) async {
     if (username.isEmpty || password.isEmpty) {
       Snackbar.error("Please enter username and password");
@@ -15,7 +17,7 @@ class AuthController {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.0.105:5000/login'), // Change this
+        Uri.parse('$baseUrl/login'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -29,10 +31,25 @@ class AuthController {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         final String token = responseData['token'];
 
+        // Decode the JWT token to get the role
+        final decodedToken = parseJwt(token);
+        final String role = decodedToken['role'] ?? '';
+
+        // Save token and role to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', token);
+        await prefs.setString('user_role', role);
 
-        nav.goRemove(const HomeScreen());
+        // Navigate based on role
+        if (role == 'superadmin') {
+          nav.goRemove(HomeSuperAdmin());
+        } else if (role == 'admin') {
+          nav.goRemove(const HomeScreen());
+        } else {
+          Snackbar.error('Invalid user role');
+          return false;
+        }
+
         return true;
       } else {
         final Map<String, dynamic> errorData = jsonDecode(response.body);
@@ -48,5 +65,19 @@ class AuthController {
       Snackbar.error('Unexpected error occurred.');
       return false;
     }
+  }
+
+  // Helper method to decode JWT token
+  Map<String, dynamic> parseJwt(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) {
+      return {};
+    }
+
+    final payload = parts[1];
+    final normalized = base64Url.normalize(payload);
+    final resp = utf8.decode(base64Url.decode(normalized));
+    final payloadMap = json.decode(resp);
+    return payloadMap;
   }
 }

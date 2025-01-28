@@ -4,8 +4,7 @@ import 'package:tisaneconnect/app/navigation.dart';
 
 import 'package:tisaneconnect/ui/pages/auth/splash_screen.dart';
 
-
-void main() async{
+void main() async {
   runApp(const MyApp());
 }
 
@@ -14,13 +13,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return 
-      MaterialApp(
-        theme: ThemeData(
-          fontFamily: "Poppins",
-        ),
-        navigatorKey: nav.nk,
-        home: const SplashScreen(),
-      );
+    return MaterialApp(
+      theme: ThemeData(
+        fontFamily: "Poppins",
+      ),
+      navigatorKey: nav.nk,
+      home: const SplashScreen(),
+    );
   }
 }

@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   ValueNotifier<bool> isObs = ValueNotifier<bool>(false);
   bool _isLoading = false;
 
-Future<void> _login() async {
+  Future<void> _login() async {
     setState(() {
       _isLoading = true;
     });
@@ -32,12 +32,11 @@ Future<void> _login() async {
         _usernameController.text.trim(), _passwordController.text.trim());
 
     if (!success) {
-        Snackbar.error('Login failed. Please check your credentials.');
+      Snackbar.error('Login failed. Please check your credentials.');
     }
     setState(() {
       _isLoading = false;
     });
-    
   }
 
   @override
