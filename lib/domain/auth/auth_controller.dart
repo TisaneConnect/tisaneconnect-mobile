@@ -22,8 +22,8 @@ class AuthController {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'username': username,
-          'password': password,
+          'username': username.trim(),
+          'password': password.trim(),
         }),
       );
 

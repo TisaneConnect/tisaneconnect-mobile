@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final bool success = await _loginController.login(
-        _usernameController.text.trim(), _passwordController.text.trim());
+        _usernameController.text, _passwordController.text);
 
     if (!success) {
       Snackbar.error('Login failed. Please check your credentials.');
