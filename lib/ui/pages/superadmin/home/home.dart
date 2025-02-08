@@ -17,8 +17,8 @@ class HomeSuperAdmin extends StatefulWidget {
 }
 
 class _HomeSuperAdminState extends State<HomeSuperAdmin> {
+  
   final String baseUrl = 'http://103.139.193.137:5000';
-
   List<Map<String, dynamic>> users = [];
   bool isLoading = true;
   Map<int, bool> passwordVisibility = {};
@@ -107,7 +107,7 @@ class _HomeSuperAdminState extends State<HomeSuperAdmin> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: selectedRole,
-                items: ['admin', 'superadmin']
+                items: ['admin', 'superadmin','user']
                     .map((role) => DropdownMenuItem<String>(
                           value: role,
                           child: Text(role),
@@ -236,7 +236,7 @@ class _HomeSuperAdminState extends State<HomeSuperAdmin> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedRole,
-                  items: ['admin', 'superadmin']
+                  items: ['admin', 'superadmin', 'user']
                       .map((role) => DropdownMenuItem<String>(
                             value: role,
                             child: Text(role),
@@ -358,35 +358,38 @@ class _HomeSuperAdminState extends State<HomeSuperAdmin> {
                   if (isLoading)
                     CircularProgressIndicator()
                   else
-                    DataTable(
-                      columns: const [
-                        DataColumn(label: Text('ID')),
-                        DataColumn(label: Text('Username')),
-                        DataColumn(label: Text('Password')),
-                        DataColumn(label: Text('Role')),
-                        DataColumn(label: Text('Actions')),
-                      ],
-                      rows: users.map((user) {
-                        return DataRow(cells: [
-                          DataCell(Text(user['id'].toString())),
-                          DataCell(Text(user['username'])),
-                          DataCell(_buildPasswordCell(user)),
-                          DataCell(Text(user['role'])),
-                          DataCell(Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () => _editUser(user),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () => _deleteUser(user['id']),
-                              ),
-                            ],
-                          )),
-                        ]);
-                      }).toList(),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('ID')),
+                          DataColumn(label: Text('Username')),
+                          DataColumn(label: Text('Password')),
+                          DataColumn(label: Text('Role')),
+                          DataColumn(label: Text('Actions')),
+                        ],
+                        rows: users.map((user) {
+                          return DataRow(cells: [
+                            DataCell(Text(user['id'].toString())),
+                            DataCell(Text(user['username'])),
+                            DataCell(_buildPasswordCell(user)),
+                            DataCell(Text(user['role'])),
+                            DataCell(Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.edit),
+                                  onPressed: () => _editUser(user),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () => _deleteUser(user['id']),
+                                ),
+                              ],
+                            )),
+                          ]);
+                        }).toList(),
+                      ),
                     ),
                 ],
               ),

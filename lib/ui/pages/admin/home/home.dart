@@ -2,26 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:tisaneconnect/app/color.dart';
 import 'package:tisaneconnect/app/constant.dart';
 import 'package:select_field/select_field.dart';
+import 'package:tisaneconnect/app/font_style.dart';
+import 'package:tisaneconnect/ui/components/button/primary_button.dart';
 import 'package:tisaneconnect/ui/components/select_field/select_field_primary.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeAdmin extends StatefulWidget {
+  const HomeAdmin({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeAdmin> createState() => _HomeAdminState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeAdminState extends State<HomeAdmin> {
+  final List<Option<String>> storeOptions = [
+    Option<String>(value: 'Raw Tisane', label: 'Raw Tisane'),
+    Option<String>(value: 'Raw Tisane 2', label: 'Raw Tisane 2'),
+  ];
+
+  final List<Option<String>> platformOptions = [
+    Option<String>(value: 'Shopee', label: 'Shopee'),
+    Option<String>(value: 'Tokopedia', label: 'Tokopedia'),
+    Option<String>(value: 'Tiktok Shop', label: 'Tiktok Shop'),
+  ];
+
   final List<Option<String>> courierOptions = [
     Option<String>(value: 'JNE', label: 'JNE'),
     Option<String>(value: 'POS', label: 'POS'),
     Option<String>(value: 'TIKI', label: 'TIKI'),
-  ];
-
-  final List<Option<String>> paymentOptions = [
-    Option<String>(value: 'Credit Card', label: 'Credit Card'),
-    Option<String>(value: 'PayPal', label: 'PayPal'),
-    Option<String>(value: 'COD', label: 'COD'),
   ];
 
   final List<Option<String>> categoryOptions = [
@@ -30,70 +37,118 @@ class _HomeScreenState extends State<HomeScreen> {
     Option<String>(value: 'Books', label: 'Books'),
   ];
 
-  final List<Option<String>> statusOptions = [
-    Option<String>(value: 'Pending', label: 'Pending'),
-    Option<String>(value: 'Processing', label: 'Processing'),
+  final List<Option<String>> productOptions = [
+    Option<String>(value: 'Teh Herbal', label: 'Teh Herbal'),
+    Option<String>(value: 'Teh Herbal X', label: 'Teh Herbal X'),
     Option<String>(value: 'Completed', label: 'Completed'),
   ];
 
+  Option<String>? selectedStore;
+  Option<String>? selectedPlatform;
   Option<String>? selectedCourier;
-  Option<String>? selectedPayment;
   Option<String>? selectedCategory;
-  Option<String>? selectedStatus;
+  Option<String>? selectedProduct;
 
   @override
   Widget build(BuildContext context) {
     return Form(
       child: Scaffold(
         backgroundColor: ColorAssets.background,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: screenWidth() / 10,
-                  right: screenWidth() / 10,
-                  top: padTop() + 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: screenHeight() * 0.1,
-                    ),
-                    const SizedBox(height: 40),
-
-                    CustomSelectField(
-                      hint: 'Pilih Kurir',
-                      options: courierOptions,
-                      onOptionSelected: (option) {
-                        setState(() {
-                          selectedCourier = option;
-                        });
-                      },
-                      initialOption: selectedCourier,
-                    ),
-                    const SizedBox(height: 20),
-
-                    const SizedBox(height: 20),
-
-                    const SizedBox(height: 20),
-                    
-                    QtyCounter(),
-                  ],
-                ),
+        body: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: screenWidth() / 10,
+                right: screenWidth() / 10,
+                top: padTop() + 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: screenHeight() * 0.1,
+                  ),
+                  Text(
+                    "Input Data Ke Operasional",
+                    style: StyleAsset.bold(fontSize: 30),
+                  ),
+                  const SizedBox(height: 40),
+                  CustomSelectField(
+                    hint: 'Pilih Toko',
+                    options: storeOptions,
+                    onOptionSelected: (option) {
+                      setState(() {
+                        selectedStore = option;
+                      });
+                    },
+                    initialOption: selectedStore,
+                  ),
+                  const SizedBox(height: 40),
+                  CustomSelectField(
+                    hint: 'Pilih Platform',
+                    options: platformOptions,
+                    onOptionSelected: (option) {
+                      setState(() {
+                        selectedPlatform = option;
+                      });
+                    },
+                    initialOption: selectedPlatform,
+                  ),
+                  const SizedBox(height: 40),
+                  CustomSelectField(
+                    hint: 'Pilih Expedisi',
+                    options: courierOptions,
+                    onOptionSelected: (option) {
+                      setState(() {
+                        selectedCourier = option;
+                      });
+                    },
+                    initialOption: selectedCourier,
+                  ),
+                  const SizedBox(height: 40),
+                  CustomSelectField(
+                    hint: 'Pilih Jenis',
+                    options: categoryOptions,
+                    onOptionSelected: (option) {
+                      setState(() {
+                        selectedCategory = option;
+                      });
+                    },
+                    initialOption: selectedCategory,
+                  ),
+                  const SizedBox(height: 40),
+                  CustomSelectField(
+                    hint: 'Pilih Nama Barang',
+                    options: productOptions,
+                    onOptionSelected: (option) {
+                      setState(() {
+                        selectedProduct = option;
+                      });
+                    },
+                    initialOption: selectedProduct,
+                  ),
+                  const SizedBox(height: 40),
+                  QtyCounter(
+                    onChanged: (e) {
+                      print(e);
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                  PrimaryButton(
+                      label: "Send To Operator", radius: 100, onTap: () {})
+                ],
               ),
             ),
-          ]
-        ),
+          ),
+        ]),
       ),
     );
   }
 }
 
 class QtyCounter extends StatefulWidget {
-  const QtyCounter({super.key});
+  const QtyCounter({super.key, required this.onChanged});
+  final Function(String) onChanged;
 
   @override
   State<QtyCounter> createState() => _QtyCounterState();
@@ -101,39 +156,40 @@ class QtyCounter extends StatefulWidget {
 
 class _QtyCounterState extends State<QtyCounter> {
   int number = 0;
-  void tambahQty() {
-    setState(() {
-      number = number + 1;
-    });
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = number.toString();
   }
 
-  void tambah10Qty() {
+  void _updateNumber(int newValue) {
     setState(() {
-      number = number + 10;
+      number = newValue;
+      _controller.text = number.toString();
     });
-  }
-  void kurangQty() {
-    setState(() {
-      if (number > 0){
-        number = number -1;
-      }
-    });
+    widget.onChanged(_controller.text);
   }
 
-  void kurang10Qty() {
-    setState(() {
-      if (number > 0 && number < 11) {
-        number = 0;
-      } else if (number > 10) {
-        number = number - 10;
-      }
-    });
-  }
+  void tambahQty() => _updateNumber(number + 1);
 
-  void hapusQty() {
-    setState(() {
-      number = 0;
-    });
+  void tambah10Qty() => _updateNumber(number + 10);
+
+  void kurangQty() => _updateNumber(number > 0 ? number - 1 : 0);
+
+  void kurang10Qty() => _updateNumber(number > 10 ? number - 10 : 0);
+
+  void hapusQty() => _updateNumber(0);
+
+  void _onTextFieldChanged(String value) {
+    widget.onChanged(value);
+    int? parsedValue = int.tryParse(value);
+    if (parsedValue != null) {
+      setState(() {
+        number = parsedValue;
+      });
+    }
   }
 
   @override
@@ -142,61 +198,66 @@ class _QtyCounterState extends State<QtyCounter> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButtonWithAction(
-                onPressed: () {
-                  kurang10Qty(); // Panggil fungsi yang sesuai
-                },
                 icon: Icons.exposure_minus_1_outlined,
-                color: ColorAssets.black,
+                color: Colors.black,
                 iconSize: 30,
+                onPressed: kurang10Qty,
               ),
               IconButtonWithAction(
-                onPressed: () {
-                  kurangQty(); // Panggil fungsi yang sesuai
-                },
                 icon: Icons.exposure_minus_1_outlined,
-                color: ColorAssets.black,
+                color: Colors.black,
                 iconSize: 30,
+                onPressed: kurangQty,
               ),
-              Text(
-                number.toString(),
-                style: TextStyle(fontSize: 25),
+
+              // TextFormField untuk input manual
+              SizedBox(
+                width: 60, // Lebar field
+                child: TextFormField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 25),
+                  onChanged: _onTextFieldChanged,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
 
               IconButtonWithAction(
-                onPressed: () {
-                  tambahQty(); // Panggil fungsi yang sesuai
-                },
                 icon: Icons.exposure_plus_1_outlined,
-                color: ColorAssets.black,
+                color: Colors.black,
                 iconSize: 30,
+                onPressed: tambahQty,
               ),
               IconButtonWithAction(
-                onPressed: () {
-                  tambah10Qty(); // Panggil fungsi yang sesuai
-                },
                 icon: Icons.exposure_plus_1_outlined,
-                color: ColorAssets.black,
+                color: Colors.black,
                 iconSize: 30,
+                onPressed: tambah10Qty,
               ),
-              IconButtonWithAction(
-                onPressed: () {
-                  hapusQty(); // Panggil fungsi yang sesuai
-                },
-                icon: Icons.restore_from_trash,
-                color: ColorAssets.error,
-                iconSize: 30,
-              )
             ],
-          )
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButtonWithAction(
+                icon: Icons.restore_from_trash,
+                iconSize: 30,
+                color: ColorAssets.error,
+                onPressed: hapusQty,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
-
 
 class IconButtonWithAction extends StatelessWidget {
   final VoidCallback onPressed;

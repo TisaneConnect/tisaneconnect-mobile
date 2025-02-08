@@ -2,10 +2,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io' show SocketException;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tisaneconnect/app/navigation.dart';
+import 'package:tisaneconnect/app/constant.dart';
 import 'package:tisaneconnect/app/snackbar.dart';
-import 'package:tisaneconnect/ui/pages/admin/home/home.dart';
-import 'package:tisaneconnect/ui/pages/superadmin/homesuperadmin.dart';
 
 class AuthController {
   final String baseUrl = 'http://103.139.193.137:5000';
@@ -17,9 +15,9 @@ class AuthController {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/login'),
+        Uri.parse('$baseUrl/auth/login'),
         headers: {
-          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: jsonEncode({
           'username': username.trim(),
@@ -29,10 +27,12 @@ class AuthController {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
+
         final String token = responseData['token'];
 
         // Decode the JWT token to get the role
         final decodedToken = parseJwt(token);
+        user = decodedToken;
         final String role = decodedToken['role'] ?? '';
 
         // Save token and role to SharedPreferences
@@ -41,14 +41,6 @@ class AuthController {
         await prefs.setString('user_role', role);
 
         // Navigate based on role
-        if (role == 'superadmin') {
-          nav.goRemove(HomeSuperAdmin());
-        } else if (role == 'admin') {
-          nav.goRemove(const HomeScreen());
-        } else {
-          Snackbar.error('Invalid user role');
-          return false;
-        }
 
         return true;
       } else {

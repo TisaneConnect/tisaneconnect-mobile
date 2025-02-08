@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:tisaneconnect/app/navigation.dart';
+import 'package:tisaneconnect/ui/pages/admin/home/home.dart';
+
 
 import 'package:tisaneconnect/ui/pages/auth/splash_screen.dart';
+import 'package:tisaneconnect/ui/pages/operasional/home/home.dart';
+import 'package:tisaneconnect/ui/pages/operasional/summary/summary.dart';
 
 void main() async {
   runApp(const MyApp());

@@ -20,6 +20,11 @@ Widget rWidth(double size) => SizedBox(
       width: size,
     );
 
+Map<String, dynamic> user = {
+  "name": "Sean",
+  "role": "admin",
+};
+
 double rawHeight(double size) => (screenHeight() / 100) * size;
 
 Widget yHeight(double size, [BuildContext? context]) => SizedBox(
@@ -37,5 +42,3 @@ Widget verticalSpace(double size) => SizedBox(
 Widget horizontalSpace(double size) => SizedBox(
       width: size,
     );
-
-enum Role { visitor, partner, admin }
