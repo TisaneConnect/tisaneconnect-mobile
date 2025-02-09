@@ -1,44 +1,65 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeOperasional extends StatefulWidget {
-  const HomeOperasional({super.key});
-
   @override
-  State<HomeOperasional> createState() => _HomeOperasionalState();
+  _HomeOperasionalState createState() => _HomeOperasionalState();
 }
 
 class _HomeOperasionalState extends State<HomeOperasional> {
+  late Future<List<Order>> futureOrders;
+
   @override
-  Widget build(BuildContext context) {
-    return HomeScreen();
+  void initState() {
+    super.initState();
+    loadOrders();
   }
-}
 
-enum OrderStatus { Done, Process, Canceled }
+  void loadOrders() {
+    setState(() {
+      futureOrders = fetchOrders();
+    });
+  }
 
-class Order {
-  final String id;
-  String description;
-  OrderStatus status;
+  Future<List<Order>> fetchOrders() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('auth_token');
 
-  Order({required this.id, required this.description, required this.status});
-}
+    try {
+      final response = await http.get(
+        Uri.parse("http://103.139.193.137:5000/process"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<Order> orders = [
-    Order(id: "1", description: "Order 1", status: OrderStatus.Done),
-    Order(id: "2", description: "Order 2", status: OrderStatus.Process),
-    Order(id: "3", description: "Order 3", status: OrderStatus.Canceled),
-    Order(id: "4", description: "Order 4", status: OrderStatus.Process),
-    Order(id: "5", description: "Order 5", status: OrderStatus.Process),
-    Order(id: "6", description: "Order 6", status: OrderStatus.Process),
-    Order(id: "7", description: "Order 7", status: OrderStatus.Process),
-  ];
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        print("Full API Response: $jsonResponse"); // Tambahkan log
+
+        List<Order> orders =
+            jsonResponse.map((data) => Order.fromJson(data)).toList();
+
+        print("Fetched Orders:");
+        for (var order in orders) {
+          print("Order ID: ${order.id}, Status: ${order.status}");
+        }
+
+        return orders;
+      } else {
+        throw Exception('Failed to load orders: ${response.body}');
+      }
+    } catch (e) {
+      print("Error fetching orders: $e");
+      return [];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,59 +70,53 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.green[300],
         centerTitle: true,
       ),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          buildOrderSection(context, "Done", OrderStatus.Done),
-          buildOrderSection(context, "Process", OrderStatus.Process),
-          buildOrderSection(context, "Canceled", OrderStatus.Canceled),
-        ],
+      body: FutureBuilder<List<Order>>(
+        future: futureOrders, // Gunakan futureOrders, bukan fetchOrders()
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error loading data"));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("No Orders Available"));
+          } else {
+            List<Order> orders = snapshot.data!;
+
+            List<Order> doneOrders =
+                orders.where((order) => order.status == "Done").toList();
+            List<Order> processOrders =
+                orders.where((order) => order.status == "Process").toList();
+
+            print("Done Orders Count: ${doneOrders.length}");
+            print("Process Orders Count: ${processOrders.length}");
+
+            return ListView(
+              padding: EdgeInsets.all(16),
+              children: [
+                if (processOrders.isNotEmpty)
+                  buildOrderSection(context, "Process", processOrders),
+                if (doneOrders.isNotEmpty)
+                  buildOrderSection(context, "Done", doneOrders),
+              ],
+            );
+          }
+        },
       ),
     );
   }
 
   Widget buildOrderSection(
-      BuildContext context, String title, OrderStatus status) {
-    List<Order> filteredOrders =
-        orders.where((order) => order.status == status).toList();
-    List<Order> limitedOrders =
-        filteredOrders.take(4).toList();
-
+      BuildContext context, String title, List<Order> orders) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            if (filteredOrders.length > 3)
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => OrderListScreen(
-                        status: status,
-                        orders: filteredOrders, // Semua data ditampilkan
-                        onUpdate: (updatedOrder) {
-                          setState(() {
-                            for (var order in orders) {
-                              if (order.id == updatedOrder.id) {
-                                order.status = updatedOrder.status;
-                              }
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                },
-                child: Text("View All"),
-              ),
-          ],
+        Text(
+          title,
+          style: TextStyle(
+              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
-        ...limitedOrders.map((order) => buildOrderItem(order)).toList(),
+        SizedBox(height: 8),
+        ...orders.map((order) => buildOrderItem(order)).toList(),
         SizedBox(height: 16),
       ],
     );
@@ -121,88 +136,85 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(order.description,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-          SizedBox(height: 10),
-          if (order.status == OrderStatus.Process)
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  order.status = OrderStatus.Done;
-                });
-              },
-              child: Text("Mark as Done"),
+          SizedBox(height: 5),
+          Text(
+            "Status: ${order.status}",
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey),
+          ),
+          if (order.status == "Process")
+            Column(
+              children: [
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => markAsDone(order.id),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text("Mark as Done"),
+                ),
+              ],
             ),
         ],
       ),
     );
   }
+
+  Future<void> markAsDone(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('auth_token');
+
+    try {
+      final response = await http.put(
+        Uri.parse("http://103.139.193.137:5000/process/done/$orderId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      print("Update Response: ${response.statusCode} - ${response.body}");
+
+      if (response.statusCode == 200) {
+        setState(() {
+          loadOrders(); // Ini memastikan data di-refresh setelah perubahan status
+        });
+
+        print("Fetching updated orders..."); // Tambahkan log ini
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Order #$orderId marked as Done!")),
+        );
+      } else {
+        print("Failed to update order: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update order: ${response.body}")),
+        );
+      }
+    } catch (e) {
+      print("Error updating order: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating order")),
+      );
+    }
+  }
 }
 
-class OrderListScreen extends StatefulWidget {
-  final OrderStatus status;
-  final List<Order> orders;
-  final Function(Order) onUpdate;
+class Order {
+  final String id;
+  final String description;
+  final String status;
 
-  OrderListScreen(
-      {required this.status, required this.orders, required this.onUpdate});
+  Order({required this.id, required this.description, required this.status});
 
-  @override
-  _OrderListScreenState createState() => _OrderListScreenState();
-}
-
-class _OrderListScreenState extends State<OrderListScreen> {
-  late List<Order> filteredOrders;
-
-  @override
-  void initState() {
-    super.initState();
-    filteredOrders = List.from(widget.orders); // Salin data agar bisa diubah
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    String statusTitle = widget.status.toString().split('.').last.toUpperCase();
-
-    return Scaffold(
-      appBar: AppBar(title: Text("Orders - $statusTitle")),
-      body: filteredOrders.isEmpty
-          ? Center(child: Text("No Orders Available"))
-          : ListView(
-              padding: EdgeInsets.all(16),
-              children:
-                  filteredOrders.map((order) => buildOrderItem(order)).toList(),
-            ),
-    );
-  }
-
-  Widget buildOrderItem(Order order) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(order.description,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-          SizedBox(height: 10),
-          if (order.status == OrderStatus.Process)
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  order.status = OrderStatus.Done;
-                  filteredOrders
-                      .remove(order); 
-                });
-                widget.onUpdate(order); 
-              },
-              child: Text("Mark as Done"),
-            ),
-        ],
-      ),
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'].toString(),
+      description: "Order ${json['id']} - ${json['item_id']}",
+      status: json['status'],
     );
   }
 }
