@@ -30,15 +30,19 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    final bool success = true;
-    print(success);
+    final String username = _usernameController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    final bool success = await _loginController.login(username, password);
+
     if (success) {
-      print(success);
+      print("Login berhasil, pindah halaman...");
       nav.goRemove(const Template());
-    }
-    if (!success) {
+    } else {
+      print("Login gagal, tetap di halaman login.");
       Snackbar.error('Login failed. Please check your credentials.');
     }
+
     setState(() {
       _isLoading = false;
     });

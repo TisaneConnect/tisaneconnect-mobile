@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tisaneconnect/app/color.dart';
-import 'package:tisaneconnect/app/constant.dart';
-
 import 'package:tisaneconnect/ui/components/bottom_navigation/bottom_navigation.dart';
 import 'package:tisaneconnect/ui/pages/admin/home/home.dart';
 import 'package:tisaneconnect/ui/pages/operasional/home/home.dart';
@@ -22,22 +21,31 @@ class _TemplateState extends State<Template> {
     ProfilePage(),
   ];
 
+  String role = ""; // Untuk menyimpan role user
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if (user["role"] == "superadmin") {
-      widgets.insert(0, HomeSuperAdmin());
-    } else {
-      if (user["role"] == "user") {
-        widgets.insert(0, HomeOperasional());
-      } else if (user["role"] == "admin") {
-        widgets.insert(0, HomeAdmin());
-      }
+    _loadUserRole();
+  }
 
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      role = prefs.getString('user_role') ??
+          ''; // Ambil role dari SharedPreferences
+    });
+
+    // Tambahkan widget berdasarkan role
+    if (role == "superadmin") {
+      widgets.insert(0, HomeSuperAdmin());
+    } else if (role == "user") {
+      widgets.insert(0, HomeOperasional());
+      widgets.insert(1, SummaryOperasional());
+    } else if (role == "admin") {
+      widgets.insert(0, HomeAdmin());
       widgets.insert(1, SummaryOperasional());
     }
-    print(widgets);
   }
 
   @override
