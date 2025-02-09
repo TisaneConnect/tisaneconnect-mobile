@@ -59,6 +59,12 @@ class AuthController {
     }
   }
 
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    await prefs.remove('user_role');
+  }
+
   // Helper method to decode JWT token
   Map<String, dynamic> parseJwt(String token) {
     final parts = token.split('.');

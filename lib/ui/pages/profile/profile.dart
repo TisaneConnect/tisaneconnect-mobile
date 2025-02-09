@@ -3,6 +3,9 @@ import 'package:tisaneconnect/app/color.dart';
 import 'package:tisaneconnect/app/constant.dart';
 import 'package:tisaneconnect/app/font_style.dart';
 import 'package:tisaneconnect/ui/components/button/primary_button.dart';
+import 'package:tisaneconnect/ui/pages/auth/login.dart';
+import 'package:tisaneconnect/domain/auth/auth_controller.dart'; // Import AuthController
+import 'package:tisaneconnect/app/navigation.dart'; // Import navigation
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,6 +15,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final AuthController _authController = AuthController();
+
+  Future<void> _logout() async {
+    await _authController.logout();
+    nav.goRemove(const LoginScreen());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -41,8 +51,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text("Role : XXXX"),
                   const SizedBox(height: 40),
                   PrimaryButton(
-                      label: "Logout", radius: 100, onTap: () {
-                      })
+                    label: "Logout",
+                    radius: 100,
+                    onTap: _logout,
+                  )
                 ],
               ),
             ),
@@ -52,5 +64,3 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-
-
