@@ -41,15 +41,11 @@ class _HomeOperasionalState extends State<HomeOperasional> {
 
       if (response.statusCode == 200) {
         List jsonResponse = json.decode(response.body);
-        print("Full API Response: $jsonResponse"); // Tambahkan log
 
         List<Order> orders =
             jsonResponse.map((data) => Order.fromJson(data)).toList();
 
-        print("Fetched Orders:");
-        for (var order in orders) {
-          print("Order ID: ${order.id}, Status: ${order.status}");
-        }
+        print("Fetched Orders: ${orders.length}");
 
         return orders;
       } else {
@@ -71,7 +67,7 @@ class _HomeOperasionalState extends State<HomeOperasional> {
         centerTitle: true,
       ),
       body: FutureBuilder<List<Order>>(
-        future: futureOrders, // Gunakan futureOrders, bukan fetchOrders()
+        future: futureOrders,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -86,9 +82,6 @@ class _HomeOperasionalState extends State<HomeOperasional> {
                 orders.where((order) => order.status == "Done").toList();
             List<Order> processOrders =
                 orders.where((order) => order.status == "Process").toList();
-
-            print("Done Orders Count: ${doneOrders.length}");
-            print("Process Orders Count: ${processOrders.length}");
 
             return ListView(
               padding: EdgeInsets.all(16),
@@ -111,7 +104,7 @@ class _HomeOperasionalState extends State<HomeOperasional> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          "$title (${orders.length})",
           style: TextStyle(
               fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
@@ -137,6 +130,13 @@ class _HomeOperasionalState extends State<HomeOperasional> {
           Text(order.description,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
           SizedBox(height: 5),
+          Text("Toko: ${order.toko}", style: TextStyle(fontSize: 14)),
+          Text("Platform: ${order.platform}",
+              style: TextStyle(fontSize: 14)), // Tambahkan platform
+          Text("Ekspedisi: ${order.ekspedisi}", style: TextStyle(fontSize: 14)),
+          Text("Jenis: ${order.jenis}", style: TextStyle(fontSize: 14)),
+          Text("Item: ${order.namaItem}", style: TextStyle(fontSize: 14)),
+          SizedBox(height: 5),
           Text(
             "Status: ${order.status}",
             style: TextStyle(
@@ -144,19 +144,20 @@ class _HomeOperasionalState extends State<HomeOperasional> {
                 fontWeight: FontWeight.bold,
                 color: Colors.blueGrey),
           ),
+          SizedBox(height: 5),
+          Text(
+            "Jumlah: ${order.quantity}",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
           if (order.status == "Process")
-            Column(
-              children: [
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () => markAsDone(order.id),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text("Mark as Done"),
-                ),
-              ],
+            ElevatedButton(
+              onPressed: () => markAsDone(order.id),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Mark as Done"),
             ),
         ],
       ),
@@ -176,20 +177,15 @@ class _HomeOperasionalState extends State<HomeOperasional> {
         },
       );
 
-      print("Update Response: ${response.statusCode} - ${response.body}");
-
       if (response.statusCode == 200) {
         setState(() {
-          loadOrders(); // Ini memastikan data di-refresh setelah perubahan status
+          loadOrders();
         });
-
-        print("Fetching updated orders..."); // Tambahkan log ini
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Order #$orderId marked as Done!")),
         );
       } else {
-        print("Failed to update order: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to update order: ${response.body}")),
         );
@@ -207,14 +203,36 @@ class Order {
   final String id;
   final String description;
   final String status;
+  final int quantity;
+  final String toko;
+  final String platform;
+  final String ekspedisi;
+  final String jenis;
+  final String namaItem;
 
-  Order({required this.id, required this.description, required this.status});
+  Order({
+    required this.id,
+    required this.description,
+    required this.status,
+    required this.quantity,
+    required this.toko,
+    required this.platform,
+    required this.ekspedisi,
+    required this.jenis,
+    required this.namaItem,
+  });
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'].toString(),
-      description: "Order ${json['id']} - ${json['item_id']}",
+      description: "Order ${json['id']}",
       status: json['status'],
+      quantity: json['jumlah'] ?? 0,
+      toko: json['nama_toko'] ?? 'Unknown',
+      platform: json['nama_platform'] ?? 'Unknown', // Tambahkan platform
+      ekspedisi: json['nama_ekspedisi'] ?? 'Unknown',
+      jenis: json['jenis'] ?? 'Unknown',
+      namaItem: json['nama_item'] ?? 'Unknown',
     );
   }
 }
