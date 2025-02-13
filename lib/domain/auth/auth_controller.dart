@@ -1,8 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io' show SocketException;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tisaneconnect/app/snackbar.dart';
 
 class AuthController {
   final String baseUrl = 'http://103.139.193.137:5000';

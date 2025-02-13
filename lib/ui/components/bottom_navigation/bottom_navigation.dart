@@ -60,7 +60,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
       showSelectedLabels: false,
       showUnselectedLabels: false,
       onTap: widget.onTap,
-      backgroundColor: ColorAssets.warning,
+      backgroundColor: ColorAssets.warning200,
       selectedItemColor: ColorAssets.white,
       unselectedItemColor: ColorAssets.black.withOpacity(0.4),
       items: menus

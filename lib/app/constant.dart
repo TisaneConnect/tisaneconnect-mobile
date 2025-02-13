@@ -20,10 +20,6 @@ Widget rWidth(double size) => SizedBox(
       width: size,
     );
 
-Map<String, dynamic> user = {
-  "name": "Sean",
-  "role": "admin",
-};
 
 double rawHeight(double size) => (screenHeight() / 100) * size;
 

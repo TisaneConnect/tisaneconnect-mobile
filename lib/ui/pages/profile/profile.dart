@@ -68,9 +68,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: StyleAsset.bold(fontSize: 30),
                   ),
                   const SizedBox(height: 40),
-                  Text("Nama : $_username"), // Tampilkan nama
+                  Text("Nama : $_username", style: StyleAsset.normal(fontSize: 20),), // Tampilkan nama
                   const SizedBox(height: 40),
-                  Text("Role : $_role"), // Tampilkan role
+                  Text("Jabatan : $_role", style: StyleAsset.normal(fontSize: 20)), // Tampilkan role
                   const SizedBox(height: 40),
                   PrimaryButton(
                     label: "Logout",

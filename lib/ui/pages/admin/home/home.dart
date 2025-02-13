@@ -5,6 +5,7 @@ import 'package:tisaneconnect/app/color.dart';
 import 'package:tisaneconnect/app/constant.dart';
 import 'package:select_field/select_field.dart';
 import 'package:tisaneconnect/app/font_style.dart';
+import 'package:tisaneconnect/app/image.dart';
 import 'package:tisaneconnect/ui/components/button/primary_button.dart';
 import 'package:tisaneconnect/ui/components/select_field/select_field_primary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -175,6 +176,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                 left: screenWidth() / 10,
                 right: screenWidth() / 10,
                 top: padTop() + 20,
+                
               ),
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -186,7 +188,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                         ),
                         Text(
                           "Input Data Ke Operasional",
-                          style: StyleAsset.bold(fontSize: 30),
+                          style: StyleAsset.bold(fontSize: 25),
                         ),
                         const SizedBox(height: 40),
                         CustomSelectField(
@@ -260,7 +262,8 @@ class _HomeAdminState extends State<HomeAdmin> {
                           label: "Send To Operator",
                           radius: 100,
                           onTap: sendToOperator,
-                        )
+                        ),
+                        const SizedBox(height: 40),
                       ],
                     ),
             ),
@@ -383,10 +386,10 @@ class _QtyCounterState extends State<QtyCounter> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButtonWithAction(
-                icon: Icons.exposure_minus_1_outlined,
-                color: Colors.black,
-                iconSize: 30,
+              ImageButtonWithAction(
+                imagePath: ImageAsset.iconminusten,
+                width: 50,
+                height: 50,
                 onPressed: kurang10Qty,
               ),
               IconButtonWithAction(
@@ -417,10 +420,10 @@ class _QtyCounterState extends State<QtyCounter> {
                 iconSize: 30,
                 onPressed: tambahQty,
               ),
-              IconButtonWithAction(
-                icon: Icons.exposure_plus_1_outlined,
-                color: Colors.black,
-                iconSize: 30,
+              ImageButtonWithAction(
+                imagePath: ImageAsset.iconplusten,
+                width: 50,
+                height: 50,
                 onPressed: tambah10Qty,
               ),
             ],
@@ -430,7 +433,7 @@ class _QtyCounterState extends State<QtyCounter> {
             children: [
               IconButtonWithAction(
                 icon: Icons.restore_from_trash,
-                iconSize: 30,
+                iconSize: 40,
                 color: ColorAssets.error,
                 onPressed: hapusQty,
               ),
@@ -465,6 +468,34 @@ class IconButtonWithAction extends StatelessWidget {
         color: color,
       ),
       iconSize: iconSize,
+    );
+  }
+}
+
+
+class ImageButtonWithAction extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String imagePath;
+  final double width;
+  final double height;
+
+  const ImageButtonWithAction({
+    Key? key,
+    required this.onPressed,
+    required this.imagePath,
+    required this.width,
+    required this.height,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Image(
+        image: AssetImage(imagePath), // Menggunakan AssetImage
+        width: width,
+        height: height,
+      ),
     );
   }
 }
