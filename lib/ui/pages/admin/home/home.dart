@@ -43,10 +43,7 @@ class _HomeAdminState extends State<HomeAdmin> {
     try {
       await Future.wait([
         fetchStores(),
-        fetchPlatforms(),
-        fetchCouriers(),
-        fetchCategories(),
-        fetchProducts(),
+        fetchTypes(), // Tambahkan ini
       ]);
       setState(() {
         isLoading = false;
@@ -61,17 +58,17 @@ class _HomeAdminState extends State<HomeAdmin> {
 
   Future<void> fetchStores() async {
     try {
-      final response =
-          await http.get(Uri.parse('http://103.139.193.137:5000/toko'));
+      final response = await http.get(
+        Uri.parse('http://103.139.193.137:5000/toko'),
+      );
+
       if (response.statusCode == 200) {
-        print('Data toko: ${response.body}'); // Debugging
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           storeOptions = data
               .map((store) => Option<String>(
                   value: store['id'].toString(),
-                  label:
-                      store['nama_toko'].toString())) // Perbaiki key jika perlu
+                  label: store['nama_toko'].toString()))
               .toList();
         });
       }
@@ -80,12 +77,13 @@ class _HomeAdminState extends State<HomeAdmin> {
     }
   }
 
-  Future<void> fetchPlatforms() async {
+  Future<void> fetchPlatforms(String tokoId) async {
     try {
-      final response =
-          await http.get(Uri.parse('http://103.139.193.137:5000/platform'));
+      final response = await http.get(
+        Uri.parse('http://103.139.193.137:5000/platform/by-toko/$tokoId'),
+      );
+
       if (response.statusCode == 200) {
-        print('Data platforms: ${response.body}');
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           platformOptions = data
@@ -100,10 +98,13 @@ class _HomeAdminState extends State<HomeAdmin> {
     }
   }
 
-  Future<void> fetchCouriers() async {
+  Future<void> fetchCouriers(String platformId) async {
     try {
-      final response =
-          await http.get(Uri.parse('http://103.139.193.137:5000/ekspedisi'));
+      final response = await http.get(
+        Uri.parse(
+            'http://103.139.193.137:5000/ekspedisi/by-platform/$platformId'),
+      );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
@@ -119,41 +120,46 @@ class _HomeAdminState extends State<HomeAdmin> {
     }
   }
 
-  Future<void> fetchCategories() async {
+  Future<void> fetchTypes() async {
     try {
-      final response =
-          await http.get(Uri.parse('http://103.139.193.137:5000/jenis'));
+      final response = await http.get(
+        Uri.parse('http://103.139.193.137:5000/jenis'),
+      );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           categoryOptions = data
-              .map((category) => Option<String>(
-                  value: category['id'].toString(),
-                  label: category['jenis'].toString()))
+              .map((type) => Option<String>(
+                  value: type['id'].toString(),
+                  label: type['jenis'].toString()))
               .toList();
         });
       }
     } catch (e) {
-      print('Error fetching categories: $e');
+      print('Error fetching types: $e');
     }
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchItems(String tokoId, String jenisId) async {
     try {
-      final response =
-          await http.get(Uri.parse('http://103.139.193.137:5000/item'));
+      final response = await http.get(
+        Uri.parse(
+            'http://103.139.193.137:5000/item/by-toko-jenis/$tokoId/$jenisId'),
+      );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           productOptions = data
-              .map((product) => Option<String>(
-                  value: product['id'].toString(),
-                  label: product['nama_item'].toString()))
+              .map((item) => Option<String>(
+                  value: item['id'].toString(),
+                  label: item['nama_item'].toString()))
               .toList();
         });
       }
     } catch (e) {
-      print('Error fetching products: $e');
+      print('Error fetching items: $e');
     }
   }
 
@@ -189,6 +195,8 @@ class _HomeAdminState extends State<HomeAdmin> {
                           onOptionSelected: (option) {
                             setState(() {
                               selectedStore = option;
+                              fetchPlatforms(
+                                  option.value); // Fetch platform sesuai toko
                             });
                           },
                           initialOption: selectedStore,
@@ -200,6 +208,8 @@ class _HomeAdminState extends State<HomeAdmin> {
                           onOptionSelected: (option) {
                             setState(() {
                               selectedPlatform = option;
+                              fetchCouriers(option
+                                  .value); // Fetch ekspedisi sesuai platform
                             });
                           },
                           initialOption: selectedPlatform,
@@ -222,13 +232,15 @@ class _HomeAdminState extends State<HomeAdmin> {
                           onOptionSelected: (option) {
                             setState(() {
                               selectedCategory = option;
+                              fetchItems(
+                                  selectedStore?.value ?? '', option.value);
                             });
                           },
                           initialOption: selectedCategory,
                         ),
                         const SizedBox(height: 40),
                         CustomSelectField(
-                          hint: 'Pilih Nama Barang',
+                          hint: 'Pilih Item',
                           options: productOptions,
                           onOptionSelected: (option) {
                             setState(() {
